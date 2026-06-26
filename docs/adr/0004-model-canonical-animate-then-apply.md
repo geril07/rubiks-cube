@@ -1,0 +1,7 @@
+# Model-canonical with animate-then-apply
+
+The Cube State (cubie model) is the only place truth is stored. The 3D meshes' resting transforms are always a pure function of the model — `mesh.position/quaternion = f(slot, orientation)`. During a turn animation the 9 turned cubies are reparented into a pivot group and tweened, temporarily overriding their resting transform; on tween completion they are reparented back to the scene and every transform is re-derived from the model. Rendered transforms are never accumulated across moves, so floating-point drift over a 100+ move solution is killed at every step.
+
+The model advances only when the animation completes (animate-then-apply), not when the move is issued (apply-then-animate). This keeps "what the solver sees" == "what the user sees" at every instant: if the user hits Scramble/Solve mid-playback, the model reflects the visible state, not a state ahead of it. Apply-then-animate would let the model race ahead of the visuals, so a mid-queue solve would run against an already-solved state — broken.
+
+Rejected: render-canonical (meshes hold truth, model reconstructed for the solver) — drift accumulates, the solver can't run without scraping the scene, and you can't animate a future move while the user watches the current one.
